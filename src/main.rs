@@ -64,7 +64,7 @@ async fn create() -> String {
     let res = create_task(TEAM_ID, CLICKUP_TOKEN, &name).await;
 
     match res {
-        Ok(_) => format!("Task {name} created"),
+        Ok(r) => format!("Task {name} created with res {r}"),
         Err(e) => format!("Error creating task: {e}"),
     }
 }

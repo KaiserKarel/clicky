@@ -1,3 +1,4 @@
+use super::list::ListId;
 use super::team::TeamId;
 
 use serde::Serialize;
@@ -6,7 +7,10 @@ use serde::Serialize;
 struct CreateTaskParameters {
     pub name: String,
     pub description: String,
+    pub parent: String,
 }
+
+const LIST_ID: ListId = ListId(188335476);
 
 /// Creates a clickup task
 pub async fn create_task(
@@ -16,14 +20,12 @@ pub async fn create_task(
 ) -> Result<String, reqwest::Error> {
     let client = reqwest::Client::new();
 
-    let url = format!(
-        "https://api.clickup.com/api/v2/team/{}/webhook",
-        team_id.into().0
-    );
+    let url = format!("https://api.clickup.com/api/v2/list/{}/task", LIST_ID.0);
 
     let params = CreateTaskParameters {
         name: String::from(name),
         description: String::from("generated task"),
+        parent: String::from("36pnwzu"),
     };
 
     client
