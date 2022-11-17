@@ -84,14 +84,11 @@ pub mod request {
         }
     }
 
-    pub async fn create_webhook<A>(
+    pub async fn create_webhook(
         team_id: impl Into<TeamId>,
         params: impl Into<CreateWebhookParameters>,
-        authorization: A,
-    ) -> Result<String, reqwest::Error>
-    where
-        axum::http::HeaderValue: std::convert::From<A>,
-    {
+        authorization: String,
+    ) -> Result<String, reqwest::Error> {
         let params: CreateWebhookParametersInner = params.into().into();
         let client = reqwest::Client::new();
 
@@ -112,7 +109,6 @@ pub mod request {
 
     #[cfg(test)]
     mod tests {
-        use axum::http::HeaderValue;
 
         use super::*;
 
@@ -121,7 +117,7 @@ pub mod request {
             create_webhook(
                 1,
                 ("https://yourdomain.com/webhook", Event::all()),
-                HeaderValue::from_static("foobazle"),
+                String::from("foobazle"),
             )
             .await
             .unwrap();

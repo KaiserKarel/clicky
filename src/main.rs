@@ -27,7 +27,7 @@ async fn main() {
         let response = request::create_webhook(
             20465559,
             ("https://clicky.fly.dev/webhook/clickup_id", Event::all()),
-            HeaderValue::from_static("pk_32525039_H1P8KP2ZGWXFZCCB8OPQM4KVI587COBF"),
+            String::from("pk_32525039_H1P8KP2ZGWXFZCCB8OPQM4KVI587COBF"),
         )
         .await
         .expect("creating a webhook should work");

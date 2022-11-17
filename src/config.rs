@@ -31,6 +31,7 @@ impl Webhook {
                 };
                 clickup::webhooks::request::create_webhook(*team_id, request.clone(), token.clone())
                     .await
+                    .map_err(|e| e.into())
                     .into()
             }
         }
