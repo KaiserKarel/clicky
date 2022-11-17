@@ -37,3 +37,32 @@ pub async fn create_task(
         .text()
         .await
 }
+
+pub async fn get_task(authorization: &str, id: &str) -> Result<String, reqwest::Error> {
+    let client = reqwest::Client::new();
+
+    let url = format!("https://api.clickup.com/api/v2/task/{}", id);
+
+    client
+        .get(url)
+        .header(reqwest::header::AUTHORIZATION, authorization)
+        .send()
+        .await?
+        .text()
+        .await
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+    use crate::CLICKUP_TOKEN;
+    use tracing_test::traced_test;
+
+    #[tokio::test]
+    #[traced_test]
+    async fn test_get_task() {
+        let res = get_task(CLICKUP_TOKEN, "36pnwzu").await.unwrap();
+        dbg!(res);
+    }
+}

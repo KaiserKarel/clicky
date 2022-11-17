@@ -16,9 +16,9 @@ use crate::clickup::team::TeamId;
 use crate::events::Event;
 use uuid::Uuid;
 
-const TEAM_ID: TeamId = TeamId(20131398);
-const CLICKUP_WEBHOOK: &str = "https://clickity.fly.dev/webhook/clickup_id";
-const CLICKUP_TOKEN: &str = "pk_38221385_ZO414SRT0JWLDX77FHFNLCJE0LRR9ELN";
+pub const TEAM_ID: TeamId = TeamId(20131398);
+pub const CLICKUP_WEBHOOK: &str = "https://clickity.fly.dev/webhook/clickup_id";
+pub const CLICKUP_TOKEN: &str = "pk_38221385_ZO414SRT0JWLDX77FHFNLCJE0LRR9ELN";
 
 #[tokio::main]
 async fn main() {
