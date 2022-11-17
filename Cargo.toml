@@ -1,0 +1,21 @@
+[package]
+name = "clicky"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+axum = "0.5.17"
+enumset = { version = "1.0.12", features = ["serde"] }
+reqwest = { version = "0.11.12", features = ["json", "rustls-tls"] }
+serde = { version = "1.0.147", features = ["derive"] }
+serde_json = "1.0.87"
+tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1.37"
+tracing-subscriber = "0.3.16"
+bytes = { version = "1", features = ["serde"] }
+octocrab = "0.16"
+fasthash = "0.4.0"
+chrono = "0.4.22"
+color-eyre = "0.6.2"
