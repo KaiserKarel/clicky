@@ -27,7 +27,21 @@
       devShells = {
         default =
           pkgs.mkShell {
-            buildInputs = [ self'.packages.rust-stable ] ++ (with pkgs; [ openssl pkg-config bacon rnix-lsp ]);
+            buildInputs = [ self'.packages.rust-stable ] ++ (with pkgs; [
+              cmake
+              llvmPackages_latest.llvm
+              llvmPackages_latest.bintools
+              zlib.out
+              xorriso
+              llvmPackages_latest.lld
+              openssl
+              gcc
+              glibc
+              pkg-config
+              bacon
+              rnix-lsp
+              binutils
+            ]);
           };
       };
     };
