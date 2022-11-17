@@ -1,4 +1,4 @@
-#[derive(Copy, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Copy, Clone, serde::Serialize, serde::Deserialize, Hash)]
 #[serde(transparent)]
 pub struct TeamId(pub(crate) u128);
 
