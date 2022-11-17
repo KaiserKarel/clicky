@@ -5,14 +5,20 @@ mod github;
 
 use axum::{
     extract::Path,
-    http::{HeaderValue, StatusCode},
+    http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
     Router,
 };
 use std::net::SocketAddr;
 
+use crate::clickup::team::TeamId;
 use crate::events::Event;
+use uuid::Uuid;
+
+const TEAM_ID: TeamId = TeamId(20131398);
+const CLICKUP_WEBHOOK: &str = "https://clickity.fly.dev/webhook/clickup_id";
+const CLICKUP_TOKEN: &str = "pk_38221385_ZO414SRT0JWLDX77FHFNLCJE0LRR9ELN";
 
 #[tokio::main]
 async fn main() {
@@ -20,17 +26,15 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(root))
+        .route("/create", get(create))
         .route("/webhook/:webhook_id", post(webhook));
 
     tokio::task::spawn(async {
         use crate::clickup::webhooks::{events::Event, request};
-        let response = request::create_webhook(
-            20131398,
-            ("https://clicky.fly.dev/webhook/clickup_id", Event::all()),
-            String::from("pk_38221385_ZO414SRT0JWLDX77FHFNLCJE0LRR9ELN"),
-        )
-        .await
-        .expect("creating a webhook should work");
+        let response =
+            request::create_webhook(TEAM_ID, (CLICKUP_WEBHOOK, Event::all()), CLICKUP_TOKEN)
+                .await
+                .expect("creating a webhook should work");
 
         tracing::info!("created webhook: {:?}", response)
     });
@@ -51,4 +55,16 @@ async fn webhook(Path(webhook_id): Path<String>, payload: bytes::Bytes) -> impl 
     let event = Event::new(payload, webhook_id);
     tracing::info!("received webhook event: {:?}", event);
     StatusCode::OK
+}
+
+async fn create() -> String {
+    use crate::clickup::actions::create_task;
+
+    let name = format!("Generated task {}", Uuid::new_v4());
+    let res = create_task(TEAM_ID, CLICKUP_TOKEN, &name).await;
+
+    match res {
+        Ok(_) => format!("Task {name} created"),
+        Err(e) => format!("Error creating task: {e}"),
+    }
 }

@@ -87,7 +87,7 @@ pub mod request {
     pub async fn create_webhook(
         team_id: impl Into<TeamId>,
         params: impl Into<CreateWebhookParameters>,
-        authorization: String,
+        authorization: &str,
     ) -> Result<String, reqwest::Error> {
         let params: CreateWebhookParametersInner = params.into().into();
         let client = reqwest::Client::new();
@@ -117,7 +117,7 @@ pub mod request {
             create_webhook(
                 1,
                 ("https://yourdomain.com/webhook", Event::all()),
-                String::from("foobazle"),
+                "foobazle",
             )
             .await
             .unwrap();

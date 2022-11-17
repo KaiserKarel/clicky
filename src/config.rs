@@ -29,7 +29,7 @@ impl Webhook {
                 let token = match cred {
                     Credential::Authorization { name, token } => token,
                 };
-                clickup::webhooks::request::create_webhook(*team_id, request.clone(), token.clone())
+                clickup::webhooks::request::create_webhook(*team_id, request.clone(), token)
                     .await
                     .map_err(|e| e.into())
                     .into()
