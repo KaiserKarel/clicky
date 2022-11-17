@@ -41,6 +41,7 @@
               bacon
               rnix-lsp
               binutils
+              flyctl
             ]);
           };
       };

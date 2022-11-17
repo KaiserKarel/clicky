@@ -1,6 +1,6 @@
-# fly.toml file generated for clicky on 2022-11-03T18:03:19+01:00
+# fly.toml file generated for clickity on 2022-11-17T21:55:16+01:00
 
-app = "clicky"
+app = "clickity"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
