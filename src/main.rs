@@ -25,9 +25,9 @@ async fn main() {
     tokio::task::spawn(async {
         use crate::clickup::webhooks::{events::Event, request};
         let response = request::create_webhook(
-            20465559,
+            20131398,
             ("https://clicky.fly.dev/webhook/clickup_id", Event::all()),
-            String::from("pk_32525039_H1P8KP2ZGWXFZCCB8OPQM4KVI587COBF"),
+            String::from("pk_38221385_ZO414SRT0JWLDX77FHFNLCJE0LRR9ELN"),
         )
         .await
         .expect("creating a webhook should work");
