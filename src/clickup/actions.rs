@@ -58,7 +58,7 @@ pub async fn set_task_parent(
     token: &ClickupToken,
     id: &TaskId,
     new_parent: &TaskId,
-) -> reqwest::Result<String> {
+) -> reqwest::Result<Task> {
     let client = reqwest::Client::new();
 
     let url = format!("https://api.clickup.com/api/v2/task/{}", id.0);
@@ -71,7 +71,7 @@ pub async fn set_task_parent(
         .json(&params)
         .send()
         .await?
-        .text()
+        .json()
         .await
 }
 
