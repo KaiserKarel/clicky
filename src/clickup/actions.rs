@@ -117,6 +117,27 @@ fn task_is_in_milestone_list(task: &Task) -> bool {
     }
 }
 
+async fn task_is_transitive_subtask_of_milestone_task(
+    token: &ClickupToken,
+    task: &Task,
+) -> reqwest::Result<bool> {
+    if !task_is_in_milestone_space(task) {
+        return Ok(false);
+    }
+
+    let mut current_task = task.clone();
+
+    while let Some(parent_id) = &current_task.parent {
+        let parent_task = get_task(token, parent_id).await?;
+        if task_is_in_milestone_list(&parent_task) {
+            return Ok(true);
+        }
+        current_task = parent_task;
+    }
+
+    Ok(false)
+}
+
 // pub async fn set_task_parent(authorization: &str
 
 #[cfg(test)]
@@ -217,5 +238,75 @@ mod tests {
             .unwrap();
 
         assert!(!task_is_in_milestone_list(&task));
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn task_that_is_transitive_subtask_of_milestone_task() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w79af")) // Task that is in the unmanaged space
+            .await
+            .unwrap();
+
+        let is_subtask = task_is_transitive_subtask_of_milestone_task(&CLICKUP_TOKEN, &task)
+            .await
+            .unwrap();
+
+        assert!(is_subtask);
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn subtask_that_is_transitive_subtask_of_milestone_task() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7rgq")) // Task that is in the unmanaged space
+            .await
+            .unwrap();
+
+        let is_subtask = task_is_transitive_subtask_of_milestone_task(&CLICKUP_TOKEN, &task)
+            .await
+            .unwrap();
+
+        assert!(is_subtask);
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn subsubtask_that_is_transitive_subtask_of_milestone_task() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7t30")) // Task that is in the unmanaged space
+            .await
+            .unwrap();
+
+        let is_subtask = task_is_transitive_subtask_of_milestone_task(&CLICKUP_TOKEN, &task)
+            .await
+            .unwrap();
+
+        assert!(is_subtask);
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn subtask_that_is_not_transitive_subtask_of_milestone_task() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7q5g")) // Subtask that is not a subtask of a milestone task
+            .await
+            .unwrap();
+
+        let is_subtask = task_is_transitive_subtask_of_milestone_task(&CLICKUP_TOKEN, &task)
+            .await
+            .unwrap();
+
+        assert!(!is_subtask);
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn subsubtask_that_is_not_transitive_subtask_of_milestone_task() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7qpy")) // subsubtask that is not a subtask of a milestone task
+            .await
+            .unwrap();
+
+        let is_subtask = task_is_transitive_subtask_of_milestone_task(&CLICKUP_TOKEN, &task)
+            .await
+            .unwrap();
+
+        assert!(!is_subtask);
     }
 }

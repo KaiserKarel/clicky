@@ -19,7 +19,7 @@ pub struct Task {
     pub name: Option<String>,
     pub description: Option<String>,
     pub status: Option<Status>,
-    pub parent: Option<String>,
+    pub parent: Option<TaskId>,
     pub custom_fields: Vec<CustomField>,
     pub list: List,
     pub folder: Folder,
