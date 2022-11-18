@@ -10,11 +10,11 @@ use axum::{
     routing::{get, post},
     Router,
 };
-use clickup::auth::ClickupToken;
+use clickup::{auth::ClickupToken, task::TaskId};
+use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 
 use crate::clickup::{list::ListId, team::TeamId};
-use crate::events::Event;
 use uuid::Uuid;
 
 pub const TEAM_ID: TeamId = TeamId(20131398);
@@ -60,10 +60,42 @@ async fn root() -> &'static str {
     "Hello, World!"
 }
 
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+struct EventPayload {
+    pub task_id: TaskId,
+}
+
 async fn webhook(Path(webhook_id): Path<String>, payload: bytes::Bytes) -> impl IntoResponse {
-    let event = Event::new(payload, webhook_id);
+    let event = serde_json::from_slice::<EventPayload>(&payload);
     tracing::info!("received webhook event: {:?}", event);
-    StatusCode::OK
+
+    match event {
+        Ok(payload) => {
+            tracing::info!("received valid webhook payload {:?}", payload);
+            let task_res = clickup::actions::get_task(&CLICKUP_TOKEN, &payload.task_id).await;
+            match task_res {
+                Ok(task) => {
+                    tracing::info!("received valid task {:?}", task);
+                    let move_res = clickup::actions::make_task_subtask_of_milestone_task_if_needed(
+                        &CLICKUP_TOKEN,
+                        &task,
+                    )
+                    .await;
+
+                    match move_res {
+                        Ok(_) => {
+                            tracing::info!("received valid task {:?}", task);
+
+                            StatusCode::OK
+                        }
+                        Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+                    }
+                }
+                Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            }
+        }
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+    }
 }
 
 async fn create() -> String {

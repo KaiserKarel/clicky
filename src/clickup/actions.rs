@@ -156,7 +156,7 @@ fn milestone_destionation_for_task(task: &Task) -> Option<TaskId> {
         })
 }
 
-async fn make_task_subtask_of_milestone_task_if_needed(
+pub async fn make_task_subtask_of_milestone_task_if_needed(
     token: &ClickupToken,
     task: &Task,
 ) -> reqwest::Result<()> {
