@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+use super::list::ListId;
+
 #[derive(Clone, Serialize, Deserialize, Hash, Default, Debug, Eq, PartialEq, Ord, PartialOrd)]
 #[serde(transparent)]
 pub struct TaskId(pub(crate) String);
@@ -44,7 +46,7 @@ pub struct Status {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct List {
-    pub id: String,
+    pub id: ListId,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]

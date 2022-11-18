@@ -13,7 +13,7 @@ use axum::{
 use clickup::auth::ClickupToken;
 use std::net::SocketAddr;
 
-use crate::clickup::team::TeamId;
+use crate::clickup::{list::ListId, team::TeamId};
 use crate::events::Event;
 use uuid::Uuid;
 
@@ -64,7 +64,8 @@ async fn create() -> String {
     use crate::clickup::actions::create_task;
 
     let name = format!("Generated task {}", Uuid::new_v4());
-    let res = create_task(&CLICKUP_TOKEN, &name).await;
+    let list = ListId::from("188335750");
+    let res = create_task(&CLICKUP_TOKEN, &list, &name).await;
 
     match res {
         Ok(r) => format!("Task {name} created with res {r}"),

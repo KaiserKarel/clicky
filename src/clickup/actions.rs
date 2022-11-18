@@ -18,13 +18,15 @@ struct SetTaskParentParams<'a> {
     pub parent: &'a TaskId,
 }
 
-const LIST_ID: ListId = ListId(188335476);
-
 /// Creates a clickup task
-pub async fn create_task(token: &ClickupToken, name: &str) -> reqwest::Result<String> {
+pub async fn create_task(
+    token: &ClickupToken,
+    list: &ListId,
+    name: &str,
+) -> reqwest::Result<String> {
     let client = reqwest::Client::new();
 
-    let url = format!("https://api.clickup.com/api/v2/list/{}/task", LIST_ID.0);
+    let url = format!("https://api.clickup.com/api/v2/list/{}/task", list.0);
 
     let params = CreateTaskParameters {
         name: String::from(name),
@@ -168,7 +170,7 @@ mod tests {
         add_task_to_list(
             &CLICKUP_TOKEN,
             &TaskId::from("36w79af"), // Task that was originally in picasso
-            &ListId::from(188335750), // picasso list
+            &ListId::from("188335750"), // picasso list
         )
         .await
         .unwrap();

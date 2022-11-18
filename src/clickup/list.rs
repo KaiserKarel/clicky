@@ -1,9 +1,11 @@
-#[derive(Copy, Clone, serde::Serialize, serde::Deserialize, Hash)]
-#[serde(transparent)]
-pub struct ListId(pub(crate) u128);
+use serde::{Deserialize, Serialize};
 
-impl From<u128> for ListId {
-    fn from(n: u128) -> Self {
-        Self(n)
+#[derive(Clone, Serialize, Deserialize, Hash, Default, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[serde(transparent)]
+pub struct ListId(pub(crate) String);
+
+impl From<&str> for ListId {
+    fn from(id: &str) -> Self {
+        Self(id.to_owned())
     }
 }
