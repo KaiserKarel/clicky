@@ -77,6 +77,27 @@ pub async fn set_task_parent(
         .await
 }
 
+pub async fn add_task_to_list(
+    token: &ClickupToken,
+    task: &TaskId,
+    list: &ListId,
+) -> reqwest::Result<String> {
+    let client = reqwest::Client::new();
+
+    let url = format!(
+        "https://api.clickup.com/api/v2/list/{}/task/{}",
+        list.0, task.0
+    );
+
+    client
+        .post(url)
+        .header(reqwest::header::AUTHORIZATION, token.0)
+        .send()
+        .await?
+        .text()
+        .await
+}
+
 fn task_is_in_milestone_space(task: &Task) -> bool {
     MILESTONE_SPACES.contains(&task.space.id.as_str())
 }
@@ -133,11 +154,23 @@ mod tests {
     async fn can_set_task_parent() {
         let res = set_task_parent(
             &CLICKUP_TOKEN,
-            &TaskId::from("3vj469b"),
-            &TaskId::from("36w74wp"),
+            &TaskId::from("36w79af"), // Task in picasso
+            &TaskId::from("36pnwzu"), // v0 milestone
         )
         .await
         .unwrap();
         dbg!(res);
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn can_add_task_to_list() {
+        add_task_to_list(
+            &CLICKUP_TOKEN,
+            &TaskId::from("36w79af"), // Task that was originally in picasso
+            &ListId::from(188335750), // picasso list
+        )
+        .await
+        .unwrap();
     }
 }
