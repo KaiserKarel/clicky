@@ -3,7 +3,7 @@ use crate::{MILESTONE_LISTS, MILESTONE_SPACES};
 use super::auth::ClickupToken;
 use super::list::ListId;
 
-use super::task::{Space, Task, TaskId};
+use super::task::{Task, TaskId};
 use serde::Serialize;
 
 #[derive(Serialize, Clone, Hash)]
@@ -108,8 +108,7 @@ fn task_is_in_milestone_list(task: &Task) -> bool {
     let space_milestone_list = MILESTONE_SPACES
         .iter()
         .position(|&space| space == task.space.id.as_str())
-        .map(|space_pos| MILESTONE_LISTS.get(space_pos))
-        .flatten();
+        .and_then(|space_pos| MILESTONE_LISTS.get(space_pos));
 
     match space_milestone_list {
         Some(list) => &task.list.id.0.as_str() == list,
