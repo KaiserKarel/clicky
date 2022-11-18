@@ -1,6 +1,5 @@
 mod clickup;
 mod config;
-mod events;
 mod github;
 
 use axum::{
@@ -61,40 +60,32 @@ async fn root() -> &'static str {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-struct EventPayload {
+struct Event {
     pub task_id: TaskId,
 }
 
-async fn webhook(Path(webhook_id): Path<String>, payload: bytes::Bytes) -> impl IntoResponse {
-    let event = serde_json::from_slice::<EventPayload>(&payload);
-    tracing::info!("received webhook event: {:?}", event);
+async fn webhook(Path(_): Path<String>, payload: bytes::Bytes) -> impl IntoResponse {
+    use clickup::actions::{get_task, make_task_subtask_of_milestone_task_if_needed};
 
-    match event {
-        Ok(payload) => {
-            tracing::info!("received valid webhook payload {:?}", payload);
-            let task_res = clickup::actions::get_task(&CLICKUP_TOKEN, &payload.task_id).await;
-            match task_res {
-                Ok(task) => {
-                    tracing::info!("received valid task {:?}", task);
-                    let move_res = clickup::actions::make_task_subtask_of_milestone_task_if_needed(
-                        &CLICKUP_TOKEN,
-                        &task,
-                    )
-                    .await;
+    let Ok(event) = serde_json::from_slice::<Event>(&payload) else {
+        tracing::error!("Invalid payload received");
+        return StatusCode::INTERNAL_SERVER_ERROR;
+    };
 
-                    match move_res {
-                        Ok(_) => {
-                            tracing::info!("received valid task {:?}", task);
+    let Ok(task) = get_task(&CLICKUP_TOKEN, &event.task_id).await else {
+        tracing::error!("Error getting task from clickup");
+        return StatusCode::INTERNAL_SERVER_ERROR;
+    };
 
-                            StatusCode::OK
-                        }
-                        Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
-                    }
-                }
-                Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            }
+    match make_task_subtask_of_milestone_task_if_needed(&CLICKUP_TOKEN, &task).await {
+        Ok(_) => {
+            tracing::info!("Successfully made task subtask of milestone {:?}", task);
+            StatusCode::OK
         }
-        Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
+        Err(err) => {
+            tracing::error!("Error making task subtask of milestone {:?}", err);
+            StatusCode::INTERNAL_SERVER_ERROR
+        }
     }
 }
 
