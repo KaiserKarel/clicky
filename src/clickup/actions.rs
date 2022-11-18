@@ -1,4 +1,4 @@
-use crate::MILESTONE_SPACES;
+use crate::{MILESTONE_LISTS, MILESTONE_SPACES};
 
 use super::auth::ClickupToken;
 use super::list::ListId;
@@ -104,6 +104,19 @@ fn task_is_in_milestone_space(task: &Task) -> bool {
     MILESTONE_SPACES.contains(&task.space.id.as_str())
 }
 
+fn task_is_in_milestone_list(task: &Task) -> bool {
+    let space_milestone_list = MILESTONE_SPACES
+        .iter()
+        .position(|&space| space == task.space.id.as_str())
+        .map(|space_pos| MILESTONE_LISTS.get(space_pos))
+        .flatten();
+
+    match space_milestone_list {
+        Some(list) => &task.list.id.0.as_str() == list,
+        None => false,
+    }
+}
+
 // pub async fn set_task_parent(authorization: &str
 
 #[cfg(test)]
@@ -174,5 +187,35 @@ mod tests {
         )
         .await
         .unwrap();
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn task_that_is_in_milestone_list() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w79af")) // Task that was originally in picasso
+            .await
+            .unwrap();
+
+        assert!(task_is_in_milestone_list(&task));
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn task_that_is_not_in_milestone_list() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7hq2")) // Test task that is not in milestone list
+            .await
+            .unwrap();
+
+        assert!(!task_is_in_milestone_list(&task));
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn task_in_different_space_is_not_in_milestone_list() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w78wt")) // Task that is in the unmanaged space
+            .await
+            .unwrap();
+
+        assert!(!task_is_in_milestone_list(&task));
     }
 }
