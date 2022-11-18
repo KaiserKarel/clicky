@@ -138,6 +138,28 @@ async fn task_is_transitive_subtask_of_milestone_task(
     Ok(false)
 }
 
+async fn make_task_subtask_of_milestone_task_if_needed(
+    token: &ClickupToken,
+    task: &Task,
+) -> reqwest::Result<()> {
+    if !task_is_in_milestone_space(task) {
+        return Ok(());
+    }
+
+    if task_is_transitive_subtask_of_milestone_task(token, task).await? {
+        return Ok(()); // already good, but note that we do not handle milestone changes correctly yet.
+    }
+
+    // The originial domain list, before it was moved to the milestone list
+    let domain_list_id = task.list.id.clone();
+
+    set_task_parent(token, &task.id, &TaskId::from("36pnwzu")).await?; //v0 milestone
+
+    add_task_to_list(token, &task.id, &domain_list_id).await?;
+
+    Ok(())
+}
+
 // pub async fn set_task_parent(authorization: &str
 
 #[cfg(test)]
@@ -308,5 +330,49 @@ mod tests {
             .unwrap();
 
         assert!(!is_subtask);
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn task_should_move_if_needed() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7wbr")) // task that should get moved
+            .await
+            .unwrap();
+
+        make_task_subtask_of_milestone_task_if_needed(&CLICKUP_TOKEN, &task)
+            .await
+            .unwrap();
+
+        let moved_task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7wbr")) // task that should get moved
+            .await
+            .unwrap();
+
+        assert!(
+            task_is_transitive_subtask_of_milestone_task(&CLICKUP_TOKEN, &moved_task)
+                .await
+                .unwrap()
+        );
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn task_should_move_if_needed_frontend_list() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7y05")) // task that should get moved from frontend list
+            .await
+            .unwrap();
+
+        make_task_subtask_of_milestone_task_if_needed(&CLICKUP_TOKEN, &task)
+            .await
+            .unwrap();
+
+        let moved_task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7wbr")) // task that should get moved
+            .await
+            .unwrap();
+
+        assert!(
+            task_is_transitive_subtask_of_milestone_task(&CLICKUP_TOKEN, &moved_task)
+                .await
+                .unwrap()
+        );
     }
 }
