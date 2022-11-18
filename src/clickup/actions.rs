@@ -1,6 +1,7 @@
 use super::list::ListId;
 use super::team::TeamId;
 
+use super::task::Task;
 use serde::Serialize;
 
 #[derive(Serialize, Clone, Hash)]
@@ -38,7 +39,7 @@ pub async fn create_task(
         .await
 }
 
-pub async fn get_task(authorization: &str, id: &str) -> Result<String, reqwest::Error> {
+pub async fn get_task(authorization: &str, id: &str) -> reqwest::Result<Task> {
     let client = reqwest::Client::new();
 
     let url = format!("https://api.clickup.com/api/v2/task/{}", id);
@@ -48,7 +49,7 @@ pub async fn get_task(authorization: &str, id: &str) -> Result<String, reqwest::
         .header(reqwest::header::AUTHORIZATION, authorization)
         .send()
         .await?
-        .text()
+        .json()
         .await
 }
 
@@ -63,6 +64,13 @@ mod tests {
     #[traced_test]
     async fn test_get_task() {
         let res = get_task(CLICKUP_TOKEN, "36pnwzu").await.unwrap();
+        dbg!(res);
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn test_get_task_with_parent() {
+        let res = get_task(CLICKUP_TOKEN, "3vj469b").await.unwrap();
         dbg!(res);
     }
 }
