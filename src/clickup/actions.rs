@@ -138,6 +138,24 @@ async fn task_is_transitive_subtask_of_milestone_task(
     Ok(false)
 }
 
+/// Gets the corresponding milestone destionation based on the custom `Milestone` field.
+/// TODO: Make easily configurable
+fn milestone_destionation_for_task(task: &Task) -> Option<TaskId> {
+    task.custom_fields
+        .iter()
+        .find(|cf| cf.name == "Milestone")
+        .and_then(|cf| cf.value.clone())
+        .and_then(|val| val.as_u64())
+        .map(|id| match id {
+            0 => TaskId::from("36w8251"), // None
+            1 => TaskId::from("36pnwzu"), // v0
+            2 => TaskId::from("36w74wp"), // v1
+            3 => TaskId::from("36w826q"), // v2
+            4 => TaskId::from("36w8281"), // v3
+            _ => TaskId::from("36w8251"), // None
+        })
+}
+
 async fn make_task_subtask_of_milestone_task_if_needed(
     token: &ClickupToken,
     task: &Task,
@@ -153,7 +171,12 @@ async fn make_task_subtask_of_milestone_task_if_needed(
     // The originial domain list, before it was moved to the milestone list
     let domain_list_id = task.list.id.clone();
 
-    set_task_parent(token, &task.id, &TaskId::from("36pnwzu")).await?; //v0 milestone
+    // TODO: Make easily configurable
+
+    let destination_task = milestone_destionation_for_task(task)
+        .expect("ERROR: Invalid milestone task configuration in binary");
+
+    set_task_parent(token, &task.id, &destination_task).await?; //v0 milestone
 
     add_task_to_list(token, &task.id, &domain_list_id).await?;
 
@@ -343,7 +366,7 @@ mod tests {
             .await
             .unwrap();
 
-        let moved_task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7wbr")) // task that should get moved
+        let moved_task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7wbr"))
             .await
             .unwrap();
 
@@ -356,8 +379,8 @@ mod tests {
 
     #[tokio::test]
     #[traced_test]
-    async fn task_should_move_if_needed_frontend_list() {
-        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7y05")) // task that should get moved from frontend list
+    async fn task_that_should_move_to_v2() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w83z6")) // task that should move to v2
             .await
             .unwrap();
 
@@ -365,7 +388,29 @@ mod tests {
             .await
             .unwrap();
 
-        let moved_task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w7wbr")) // task that should get moved
+        let moved_task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w83z6"))
+            .await
+            .unwrap();
+
+        assert!(
+            task_is_transitive_subtask_of_milestone_task(&CLICKUP_TOKEN, &moved_task)
+                .await
+                .unwrap()
+        );
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn task_that_should_move_to_v3() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w861w")) // task that should move to v2
+            .await
+            .unwrap();
+
+        make_task_subtask_of_milestone_task_if_needed(&CLICKUP_TOKEN, &task)
+            .await
+            .unwrap();
+
+        let moved_task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w861w"))
             .await
             .unwrap();
 

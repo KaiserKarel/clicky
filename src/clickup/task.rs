@@ -35,11 +35,6 @@ pub struct CustomField {
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct CustomFieldValue {
-    pub value: Option<String>,
-}
-
-#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Status {
     pub status: String,
 }
