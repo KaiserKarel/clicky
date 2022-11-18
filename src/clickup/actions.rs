@@ -1,7 +1,9 @@
+use crate::MILESTONE_SPACES;
+
 use super::auth::ClickupToken;
 use super::list::ListId;
 
-use super::task::{Task, TaskId};
+use super::task::{Space, Task, TaskId};
 use serde::Serialize;
 
 #[derive(Serialize, Clone, Hash)]
@@ -75,6 +77,10 @@ pub async fn set_task_parent(
         .await
 }
 
+fn task_is_in_milestone_space(task: &Task) -> bool {
+    MILESTONE_SPACES.contains(&task.space.id.as_str())
+}
+
 // pub async fn set_task_parent(authorization: &str
 
 #[cfg(test)]
@@ -91,6 +97,26 @@ mod tests {
             .await
             .unwrap();
         dbg!(res);
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn task_that_is_in_milestone_space() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36pnwzu"))
+            .await
+            .unwrap();
+
+        assert!(task_is_in_milestone_space(&task));
+    }
+
+    #[tokio::test]
+    #[traced_test]
+    async fn task_that_is_not_in_milestone_space() {
+        let task = get_task(&CLICKUP_TOKEN, &TaskId::from("36w78wt"))
+            .await
+            .unwrap();
+
+        assert!(!task_is_in_milestone_space(&task));
     }
 
     #[tokio::test]
