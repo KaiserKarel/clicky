@@ -1,6 +1,7 @@
+use super::auth::ClickupToken;
 use super::list::ListId;
 
-use super::task::Task;
+use super::task::{Task, TaskId};
 use serde::Serialize;
 
 #[derive(Serialize, Clone, Hash)]
@@ -13,7 +14,7 @@ struct CreateTaskParameters {
 const LIST_ID: ListId = ListId(188335476);
 
 /// Creates a clickup task
-pub async fn create_task(authorization: &str, name: &str) -> Result<String, reqwest::Error> {
+pub async fn create_task(token: &ClickupToken, name: &str) -> reqwest::Result<String> {
     let client = reqwest::Client::new();
 
     let url = format!("https://api.clickup.com/api/v2/list/{}/task", LIST_ID.0);
@@ -26,7 +27,7 @@ pub async fn create_task(authorization: &str, name: &str) -> Result<String, reqw
 
     client
         .post(url)
-        .header(reqwest::header::AUTHORIZATION, authorization)
+        .header(reqwest::header::AUTHORIZATION, token.0)
         .json(&params)
         .send()
         .await?
@@ -34,19 +35,21 @@ pub async fn create_task(authorization: &str, name: &str) -> Result<String, reqw
         .await
 }
 
-pub async fn get_task(authorization: &str, id: &str) -> reqwest::Result<Task> {
+pub async fn get_task(token: &ClickupToken, id: &TaskId) -> reqwest::Result<Task> {
     let client = reqwest::Client::new();
 
-    let url = format!("https://api.clickup.com/api/v2/task/{}", id);
+    let url = format!("https://api.clickup.com/api/v2/task/{}", id.0);
 
     client
         .get(url)
-        .header(reqwest::header::AUTHORIZATION, authorization)
+        .header(reqwest::header::AUTHORIZATION, token.0)
         .send()
         .await?
         .json()
         .await
 }
+
+// pub async fn set_task_parent(authorization: &str
 
 #[cfg(test)]
 mod tests {
@@ -58,14 +61,18 @@ mod tests {
     #[tokio::test]
     #[traced_test]
     async fn test_get_task() {
-        let res = get_task(CLICKUP_TOKEN, "36pnwzu").await.unwrap();
+        let res = get_task(&CLICKUP_TOKEN, &TaskId::from("36pnwzu"))
+            .await
+            .unwrap();
         dbg!(res);
     }
 
     #[tokio::test]
     #[traced_test]
     async fn test_get_task_with_parent() {
-        let res = get_task(CLICKUP_TOKEN, "3vj469b").await.unwrap();
+        let res = get_task(&CLICKUP_TOKEN, &TaskId::from("3vj469b"))
+            .await
+            .unwrap();
         dbg!(res);
     }
 }

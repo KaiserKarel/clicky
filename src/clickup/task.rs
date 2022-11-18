@@ -1,9 +1,19 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+#[derive(Clone, Serialize, Deserialize, Hash, Default, Debug, Eq, PartialEq, Ord, PartialOrd)]
+#[serde(transparent)]
+pub struct TaskId(pub(crate) String);
+
+impl From<&str> for TaskId {
+    fn from(id: &str) -> Self {
+        Self(id.to_owned())
+    }
+}
+
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Task {
-    pub id: String,
+    pub id: TaskId,
     pub name: Option<String>,
     pub description: Option<String>,
     pub status: Option<Status>,

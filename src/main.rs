@@ -10,6 +10,7 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use clickup::auth::ClickupToken;
 use std::net::SocketAddr;
 
 use crate::clickup::team::TeamId;
@@ -18,7 +19,8 @@ use uuid::Uuid;
 
 pub const TEAM_ID: TeamId = TeamId(20131398);
 pub const CLICKUP_WEBHOOK: &str = "https://clickity.fly.dev/webhook/clickup_id";
-pub const CLICKUP_TOKEN: &str = "pk_38221385_ZO414SRT0JWLDX77FHFNLCJE0LRR9ELN";
+pub const CLICKUP_TOKEN: ClickupToken =
+    ClickupToken("pk_38221385_ZO414SRT0JWLDX77FHFNLCJE0LRR9ELN");
 
 #[tokio::main]
 async fn main() {
@@ -32,7 +34,7 @@ async fn main() {
     tokio::task::spawn(async {
         use crate::clickup::webhooks::{events::Event, request};
         let response =
-            request::create_webhook(TEAM_ID, (CLICKUP_WEBHOOK, Event::all()), CLICKUP_TOKEN)
+            request::create_webhook(&CLICKUP_TOKEN, TEAM_ID, (CLICKUP_WEBHOOK, Event::all()))
                 .await
                 .expect("creating a webhook should work");
 
@@ -61,7 +63,7 @@ async fn create() -> String {
     use crate::clickup::actions::create_task;
 
     let name = format!("Generated task {}", Uuid::new_v4());
-    let res = create_task(CLICKUP_TOKEN, &name).await;
+    let res = create_task(&CLICKUP_TOKEN, &name).await;
 
     match res {
         Ok(r) => format!("Task {name} created with res {r}"),
