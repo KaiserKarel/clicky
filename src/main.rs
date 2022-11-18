@@ -21,7 +21,13 @@ pub const TEAM_ID: TeamId = TeamId(20131398);
 pub const CLICKUP_WEBHOOK: &str = "https://clickity.fly.dev/webhook/clickup_id";
 pub const CLICKUP_TOKEN: ClickupToken =
     ClickupToken("pk_38221385_ZO414SRT0JWLDX77FHFNLCJE0LRR9ELN");
-pub const MILESTONE_SPACES: [&'static str; 1] = ["32279886"];
+
+/// All spaces for which milestone management is enabled
+/// TODO: make nicer structure instead of &str slice
+pub const MILESTONE_SPACES: [&str; 1] = ["32279886"];
+/// The milestone list for each milestone space, matches by index
+/// TODO: make nicer structure instead of &str slice
+pub const MILESTONE_LISTS: [&str; 1] = ["188335476"];
 
 #[tokio::main]
 async fn main() {
