@@ -1,6 +1,6 @@
 pub mod request {
     use super::events::Event;
-    use crate::clickup::team::TeamId;
+    use crate::clickup::{auth::ClickupToken, team::TeamId};
     use serde::{Deserialize, Serialize};
 
     #[derive(Serialize, Clone, Hash)]
@@ -84,14 +84,11 @@ pub mod request {
         }
     }
 
-    pub async fn create_webhook<A>(
+    pub async fn create_webhook(
+        token: &ClickupToken,
         team_id: impl Into<TeamId>,
         params: impl Into<CreateWebhookParameters>,
-        authorization: A,
-    ) -> Result<String, reqwest::Error>
-    where
-        axum::http::HeaderValue: std::convert::From<A>,
-    {
+    ) -> Result<String, reqwest::Error> {
         let params: CreateWebhookParametersInner = params.into().into();
         let client = reqwest::Client::new();
 
@@ -102,7 +99,7 @@ pub mod request {
 
         client
             .post(url)
-            .header(reqwest::header::AUTHORIZATION, authorization)
+            .header(reqwest::header::AUTHORIZATION, token.0)
             .json(&params)
             .send()
             .await?
@@ -112,16 +109,15 @@ pub mod request {
 
     #[cfg(test)]
     mod tests {
-        use axum::http::HeaderValue;
 
         use super::*;
 
         #[tokio::test]
         async fn test_create_webhook_works() {
             create_webhook(
+                &ClickupToken("faketoken"),
                 1,
                 ("https://yourdomain.com/webhook", Event::all()),
-                HeaderValue::from_static("foobazle"),
             )
             .await
             .unwrap();
