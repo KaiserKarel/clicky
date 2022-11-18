@@ -61,7 +61,7 @@ async fn create() -> String {
     use crate::clickup::actions::create_task;
 
     let name = format!("Generated task {}", Uuid::new_v4());
-    let res = create_task(TEAM_ID, CLICKUP_TOKEN, &name).await;
+    let res = create_task(CLICKUP_TOKEN, &name).await;
 
     match res {
         Ok(r) => format!("Task {name} created with res {r}"),
